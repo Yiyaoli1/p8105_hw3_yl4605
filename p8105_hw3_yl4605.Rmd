@@ -163,6 +163,7 @@ ny_noaa = ny_noaa %>%
     separate(date, c("year","month","day")) %>%
     mutate(across(year:tmin,as.numeric),
            tmax = tmax/10,
-           tmin = tmin/10)
+           tmin = tmin/10) %>%
+    drop_na()
 ```
 
