@@ -74,3 +74,95 @@ instacart %>%
   knitr::kable()
 ```
 
+apples vs ice cream
+
+```{r}
+instacart %>%
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>%
+  group_by(product_name,order_dow) %>%
+  summarize(
+    mean_hour = mean(order_hour_of_day)
+  ) %>%
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
+```
+
+## Problem 2
+
+1):
+
+Load the data
+
+```{r, warning=FALSE}
+accel_data = read_csv("./data/accel_data.csv") %>% 
+    janitor::clean_names()
+```
+
+Tidy the data
+
+```{r}
+accel_tidy = 
+  accel_data %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "minute",
+    names_prefix = "activity_",
+    values_to = "counts"
+  ) %>% 
+  mutate(weekdays_vs_weekand = case_when(day == "Monday" ~ "weekdays", day == "Tuesday" ~ "weekdays", day == "Wednesday" ~ "weekdays", day == "Thusday" ~ "weekdays", day == "Friday" ~ "weekdays", day =="Saturday" ~ "weekand", day == "Sunday" ~ "weekand"))
+```
+describe the dataset:
+The dataset is `r nrow(accel_tidy)` * `r ncol(accel_tidy)`. There are six variables. And there names are `r names(accel_tidy)`. There are `r nrow(accel_tidy)` observations.
+
+
+
+2):
+
+A total activity variable for each day
+
+```{r, warning=FALSE, message=FALSE}
+accel_tidy %>%
+  mutate(day = forcats::
+         fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+  group_by(week, day) %>%
+  summarise(total_counts = sum(counts)) %>%
+  pivot_wider(names_from = week,
+              names_prefix = "week",
+              values_from = total_counts) %>% 
+  knitr::kable(digits = 1)
+```
+
+make a graph
+
+```{r}
+accel_plot = 
+  accel_tidy %>%
+  mutate(day = forcats::
+           fct_relevel(day, c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"))) %>%
+  mutate(
+    minute = as.integer(minute),
+    hour = (minute - 1) %/% 60) %>% 
+  group_by(day_id, hour, day) %>%
+  summarise(total_hour_accel = sum(counts))
+
+accel_plot %>%
+  ggplot(aes(x = hour, y = total_hour_accel, group = day_id)) +
+  geom_line(aes(colour = day))
+```
+
+
+##  Problem 3
+
+load the data
+
+```{r}
+data("ny_noaa")
+ny_noaa = ny_noaa %>% 
+    separate(date, c("year","month","day")) %>%
+    mutate(across(year:tmin,as.numeric),
+           tmax = tmax/10,
+           tmin = tmin/10)
+```
+
